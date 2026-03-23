@@ -74,8 +74,8 @@ export function AuthPage() {
 
   const canSubmit =
     email.trim().length > 0 &&
-    password.trim().length >= 8 &&
-    (mode === "sign_in" || name.trim().length > 0);
+    password.trim().length > 0 &&
+    (mode === "sign_in" || (name.trim().length > 0 && password.trim().length >= 8));
 
   if (isSessionLoading || isHealthLoading) {
     return (
@@ -108,6 +108,11 @@ export function AuthPage() {
             className="mt-6 space-y-4"
             onSubmit={(event) => {
               event.preventDefault();
+              if (mutation.isPending) return;
+              if (!canSubmit) {
+                setError("Please fill in all required fields.");
+                return;
+              }
               mutation.mutate();
             }}
           >
@@ -146,7 +151,12 @@ export function AuthPage() {
               />
             </div>
             {error && <p className="text-xs text-destructive">{error}</p>}
-            <Button type="submit" disabled={!canSubmit || mutation.isPending} className="w-full">
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              aria-disabled={!canSubmit || mutation.isPending}
+              className={`w-full ${!canSubmit && !mutation.isPending ? "opacity-50" : ""}`}
+            >
               {mutation.isPending
                 ? "Working…"
                 : mode === "sign_in"
